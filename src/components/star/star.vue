@@ -9,6 +9,8 @@
    最高分: 5
    小数部分>=0.5
    */
+
+  // 定义 class 类放到数组中 然后循环遍历
   const CLASS_ON = 'on'
   const CLASS_HALF = 'half'
   const CLASS_OFF = 'off'
@@ -23,19 +25,22 @@
       starClasses () {
         const scs = []
         // 向scs添加CLASS_ON
-        var score = this.score
-        var scoreInteger = Math.floor(score)
+        var score = this.score // score = 3.6
+        var scoreInteger = Math.floor(score) // score = 3
         for (let i = 0; i < scoreInteger; i++) {
           scs.push(CLASS_ON)
         }
-        // 向scs添加CLASS_HALF
+        // 向scs添加CLASS_HALF  如果小数点大于0.5 添加半个星星
         if(score-scoreInteger>=0.5) {
           scs.push(CLASS_HALF)
         }
-        // 向scs添加CLASS_OFF
+        // scs = ["on", "on", "on", "half"]
+
+        // 向scs添加CLASS_OFF  scs长度还不满5 添加 空白星星  直到scs 的长度为5
         while(scs.length<5) {
           scs.push(CLASS_OFF)
         }
+        // scs = ["on", "on", "on", "half", "off"]
         return scs
       }
     }

@@ -12,7 +12,10 @@
         <router-link to="/seller">商家</router-link>
       </div>
     </div>
-    <router-view></router-view>
+    <keep-alive>
+      <router-view :seller="seller"></router-view>
+    </keep-alive>
+
   </div>
 </template>
 
@@ -31,9 +34,10 @@
     created () {
       this.$http.get('/api/seller')
         .then(response => {
-          const result = response.body
+          const result = response.data
           if (result.code === OK) {
             this.seller = result.data
+            this.seller.score = 3.6
             console.log('vue-resouse', this.seller);
           }
         })
