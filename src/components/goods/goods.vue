@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="goods">
-      <div class="menu-wrapper">
+    <div class="goods" v-cloak>
+      <div class="menu-wrapper" ref="menuWrapper">
         <ul>
-          <li class="menu-item" v-for="(good, index) in goods">
+          <li class="menu-item" v-for="(good, index) in goods" :class="{current: index === currentIndex}">
               <span class="text border-1px">
                 <span class="icon" v-if="good.type>=0" :class="classMap[good.type]"></span>
                 {{good.name}}
@@ -12,7 +12,7 @@
 
         </ul>
       </div>
-      <div class="foods-wrapper">
+      <div class="foods-wrapper" ref="foodsWrapper">
         <ul>
           <li class="food-list food-list-hook" v-for="good in goods">
             <h1 class="title">{{good.name}}</h1>
@@ -51,30 +51,95 @@
 
 <script>
   import axios from 'axios'
+  import BScroll from 'better-scroll'
+  import Vue from 'vue'
   const OK = 0
   export default {
       data () {
           return {
-              goods: []
+            goods: [],
+            tops: [],
+            scrollY: 0
+
           }
       },
     created () {
       this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee']
+
       axios.get('/api/goods')
         .then(response => {
           const result = response.data
           console.log(result);
           if (result.code === OK) {
             this.goods = result.data
+            // 在下次 DOM 更新循环结束之后执行延时回调。（必须等DOM结构完全加载结束后调用回调才会生效）在修改数据之后立即使用这个方法，获取更新后的 DOM -- nextTick from 官网
+            /*
+             1. 在Vue生命周期的created()钩子函数进行的DOM操作一定要放在Vue.nextTick()的回调函数中。之对应的就是mounted钩子函数，因为该钩子函数执行时所有的DOM挂载和渲染都已完成，此时在该钩子函数中进行任何DOM操作都不会有问题 。
+             2. 在数据变化后要执行的某个操作，而这个操作需要使用随数据改变而改变的DOM结构的时候，这个操作都应该放进Vue.nextTick()的回调函数中。
+             */
 
+            Vue.nextTick(() => {
+              // 初始化滚动条
+              this._initScroll()
+              // 读取右侧所有分类的top值
+              this._initTops()
+            })
           }
         })
+    },
+
+    methods: {
+      _initScroll () {
+        // 创建分类列表的Scoll对象
+        var menwScroll = new BScroll(this.$refs.menuWrapper, {
+            click: true
+        })
+        // 创建food列表的Scoll对象
+        var foodScroll = new BScroll(this.$refs.foodsWrapper, {
+            /*bs插件为我们提供了一个实时获取y值的方法，我们在初始化this.foodScroll的时候加一个·属性probeType: 3，其作用就是实时获取y值，相当于探针的作用。*/
+          probeType: 3,
+          click: true
+        })
+        // 绑定 scroll监听
+        foodScroll.on('scroll', (pos) => {
+          console.log(pos,pos.y);
+          // Math.abs 去绝对值
+          this.scrollY = Math.abs(pos.y)
+        })
+
+
+
+      },
+      _initTops () {
+        let tops = this.tops
+        let top = 0
+        tops.push(top)
+        let lis = this.$refs.foodsWrapper.getElementsByClassName('foodsWrapper');
+
+        [].slice.call(lis).forEach(li => {
+            top += li.clientHeight
+            tops.push(top)
+        })
+        console.log(tops);
+      }
+    },
+    computed: {
+      currentIndex () {
+        const {tops, scrollY} = this
+        // scrollY 大于或等于当前的top, 且小于下一个top
+        // 判断当currentIndex在height1和height2之间的时候显示
+        return tops.findIndex((top, index) => {
+            return scrollY>=top && scrollY< tops[index+1]
+        })
+      }
     }
   }
 </script>
 
 <style lang="stylus" rel="stylesheet/stylus">
   @import "../../common/stylus/mixins.styl"
+  [v-cloak]
+    display none
   .goods
     display: flex
     position: absolute
