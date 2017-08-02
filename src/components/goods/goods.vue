@@ -1,15 +1,15 @@
 <template>
   <div>
-    <div class="goods" v-cloak>
+    <div class="goods">
       <div class="menu-wrapper" ref="menuWrapper">
         <ul>
-          <li class="menu-item" v-for="(good, index) in goods" :class="{current: index === currentIndex}">
-              <span class="text border-1px">
-                <span class="icon" v-if="good.type>=0" :class="classMap[good.type]"></span>
-                {{good.name}}
-              </span>
+          <!--current-->
+          <li class="menu-item" v-for="(good, index) in goods"
+              :class="{current: index===currentIndex}" @click="clickMenuItem(index, $event)">
+            <span class="text border-1px">
+              <span class="icon" v-if="good.type>=0" :class="classMap[good.type]"></span>{{good.name}}
+            </span>
           </li>
-
         </ul>
       </div>
       <div class="foods-wrapper" ref="foodsWrapper">
@@ -24,19 +24,16 @@
                 <div class="content">
                   <h2 class="name">{{food.name}}</h2>
                   <p class="desc">{{food.description}}</p>
-
                   <div class="extra">
                     <span class="count">月售{{food.sellCount}}份</span>
                     <span>好评率{{food.rating}}%</span>
                   </div>
-
                   <div class="price">
                     <span class="now">￥{{food.price}}</span>
                     <span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                   </div>
-
                   <div class="cartcontrol-wrapper">
-                    cartcontrol 组件
+                    cartcontrol组件
                   </div>
                 </div>
               </li>
@@ -60,24 +57,21 @@
             goods: [],
             tops: [],
             scrollY: 0
-
           }
       },
     created () {
       this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee']
-
       axios.get('/api/goods')
         .then(response => {
           const result = response.data
           console.log(result);
           if (result.code === OK) {
             this.goods = result.data
-            // 在下次 DOM 更新循环结束之后执行延时回调。（必须等DOM结构完全加载结束后调用回调才会生效）在修改数据之后立即使用这个方法，获取更新后的 DOM -- nextTick from 官网
+            // 在下次 DOM 更新循环结束之后执行延时回调。（必须等DOM结构完全加载结束后调用回调才会生效）在修改数据之后立即使用这个方法，获取更新后的 DOM -- nextTick from website
             /*
              1. 在Vue生命周期的created()钩子函数进行的DOM操作一定要放在Vue.nextTick()的回调函数中。之对应的就是mounted钩子函数，因为该钩子函数执行时所有的DOM挂载和渲染都已完成，此时在该钩子函数中进行任何DOM操作都不会有问题 。
              2. 在数据变化后要执行的某个操作，而这个操作需要使用随数据改变而改变的DOM结构的时候，这个操作都应该放进Vue.nextTick()的回调函数中。
              */
-
             Vue.nextTick(() => {
               // 初始化滚动条
               this._initScroll()
@@ -91,36 +85,44 @@
     methods: {
       _initScroll () {
         // 创建分类列表的Scoll对象
-        var menwScroll = new BScroll(this.$refs.menuWrapper, {
+         new BScroll(this.$refs.menuWrapper, {
             click: true
         })
         // 创建food列表的Scoll对象
-        var foodScroll = new BScroll(this.$refs.foodsWrapper, {
-            /*bs插件为我们提供了一个实时获取y值的方法，我们在初始化this.foodScroll的时候加一个·属性probeType: 3，其作用就是实时获取y值，相当于探针的作用。*/
+        this.foodsScroll = new BScroll(this.$refs.foodsWrapper, {
+            /*bs插件为我们提供了一个实时获取y值的方法，我们在初始化this.foodScroll的时候加一个·属性probeType: 3，其作用就是实时获取y值，相当于探针的作用。
+             probeType: 1 滚动的时候会派发scroll事件，会截流。2滚动的时候实时派发 - scroll事件，不会截流。 3除了实时派发scroll事件，在swipe的情况下仍然能实时派发scroll事件
+            * */
+
           probeType: 3,
           click: true
         })
         // 绑定 scroll监听
-        foodScroll.on('scroll', (pos) => {
+        this.foodsScroll.on('scroll', (pos) => {
           console.log(pos,pos.y);
           // Math.abs 去绝对值
           this.scrollY = Math.abs(pos.y)
         })
-
-
-
       },
       _initTops () {
         let tops = this.tops
         let top = 0
         tops.push(top)
-        let lis = this.$refs.foodsWrapper.getElementsByClassName('foodsWrapper');
-
-        [].slice.call(lis).forEach(li => {
+        let lis = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')
+        ;[].slice.call(lis).forEach(li => {
             top += li.clientHeight
             tops.push(top)
         })
-        console.log(tops);
+        console.log(tops)
+      },
+      clickMenuItem (index, event) {
+        // 自己默认派发事件时候(BScroll),_constructed被置为true,但是浏览器原生并没有这个属性
+        if (!event._constructed) {
+            return
+        }
+        console.log(index, event)
+        let li = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')[index]
+        this.foodsScroll.scrollToElement(li, 300)
       }
     },
     computed: {
