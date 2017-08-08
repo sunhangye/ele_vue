@@ -33,7 +33,7 @@
                     <span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                   </div>
                   <div class="cartcontrol-wrapper">
-                    cartcontrol组件
+                    <cartcontrol :food="food" :update-food-count="updateFoodCount"></cartcontrol>
                   </div>
                 </div>
               </li>
@@ -50,9 +50,10 @@
   import axios from 'axios'
   import BScroll from 'better-scroll'
   import Vue from 'vue'
+  import cartcontrol from '../cartcontrol/cartcontrol.vue'
   const OK = 0
   export default {
-      data () {
+    data () {
           return {
             goods: [],
             tops: [],
@@ -123,6 +124,28 @@
         console.log(index, event)
         let li = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')[index]
         this.foodsScroll.scrollToElement(li, 300)
+      },
+      updateFoodCount (food, idAdd,event) {
+          console.log(idAdd, food.count);
+          if (!event._constructed) {
+              return
+          }
+          if(idAdd){ // 增加
+              if(!food.count){ // 判断第一次
+                console.log('updateFoodCount() 第一次')
+                // 新增count属性
+                // food.count = 1
+                // 没有监视-->没有数据绑定，界面不会更新
+                Vue.set(food, 'count', 1)
+              }else {
+                  food.count--
+              }
+
+          }else {
+              if(food.count){
+                food.count--
+              }
+          }
       }
     },
     computed: {
@@ -134,6 +157,9 @@
             return scrollY>=top && scrollY< tops[index+1]
         })
       }
+    },
+    components: {
+      cartcontrol
     }
   }
 </script>
