@@ -41,7 +41,14 @@
           </li>
         </ul>
       </div>
+      <shopcart :food-list="foodList"
+                :delivery-price="seller.deliveryPrice"
+                :min-price="seller.minPrice"
+                :clear-cart="clearCart"
+                :updata-food-count="updateFoodCount"
+                ref="shopcart"></shopcart>
     </div>
+
     <div class="food"></div>
   </div>
 </template>
@@ -51,8 +58,10 @@
   import BScroll from 'better-scroll'
   import Vue from 'vue'
   import cartcontrol from '../cartcontrol/cartcontrol.vue'
+  import shopcart from  '../shopcart/shopcart.vue'
   const OK = 0
   export default {
+    props: ['seller'],
     data () {
           return {
             goods: [],
@@ -138,14 +147,20 @@
                 // 没有监视-->没有数据绑定，界面不会更新
                 Vue.set(food, 'count', 1)
               }else {
-                  food.count--
+                  food.count++
               }
-
+              // 通知shopcart组件对象启动一个小球的显示动画
+              this.$refs.shopcart.drop(event.target)
           }else {
               if(food.count){
                 food.count--
               }
           }
+      },
+      clearCart () {
+        this.foodList.forEach(food => {
+          food.count = 0
+        })
       }
     },
     computed: {
@@ -156,10 +171,22 @@
         return tops.findIndex((top, index) => {
             return scrollY>=top && scrollY< tops[index+1]
         })
+      },
+      foodList () { // 返回所以count>0 的food数组
+        const foods = []
+        this.goods.forEach(good => {
+          good.foods.forEach(food => {
+            if(food.count){
+                foods.push(food)
+            }
+          })
+        })
+      return foods
       }
     },
     components: {
-      cartcontrol
+      cartcontrol,
+      shopcart
     }
   }
 </script>
