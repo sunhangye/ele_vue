@@ -14,7 +14,7 @@
           <div class="desc">另需配送费￥{{deliveryPrice}}元</div>
         </div>
         <div class="content-right" @click="pay">
-          <div class="pay" :class="totalPrice<minPrice?'not-enough':'enough'" >
+          <div class="pay" :class="totalPrice<minPrice?'not-enough':'enough'">
             {{payText}}
           </div>
         </div>
@@ -22,10 +22,10 @@
 
       <div class="ball-container">
         <transition name="drop" v-for="(ball, index) in balls" :key="index"
-                   @before-enter="beforeDrop"
-                   @enter="dropping"
-                   @after-enter="afterDrop"
-                   v-bind:css="false">
+                    @before-enter="beforeDrop"
+                    @enter="dropping"
+                    @after-enter="afterDrop"
+                    v-bind:css="false">
           <div class="ball" v-show="ball.isShow">
             <div class="inner inner-hook"></div>
           </div>
@@ -44,7 +44,7 @@
                 <span class="name">{{food.name}}/{{food.count}}个</span>
                 <div class="price"><span>￥{{food.price}}</span></div>
                 <div class="cartcontrol-wrapper">
-                  <cartcontrol :food="food" :updata-food-count="updateFoodCount"></cartcontrol>
+                  <cartcontrol :food="food" :update-food-count="updateFoodCount"></cartcontrol>
                 </div>
               </li>
             </ul>
@@ -63,147 +63,147 @@
   import Vue from 'vue'
   import cartcontrol from '../cartcontrol/cartcontrol.vue'
 
-    export default {
-        props: {
-          foodList: Array,
-          deliveryPrice: Number,
-          minPrice: Number,
-          clearCart: Function,
-          updateFoodCount: Function
-        },
-        data () {
-            return {
-              isShow: false,
-              balls: [
-                {isShow: false},
-                {isShow: false},
-                {isShow: false},
-                {isShow: false},
-                {isShow: false}
-              ],
-              droppingBalls: []  // 保存多个执行动画的ball
-            }
-        },
-        computed: {
-          totalCount () {
-              /* Array的reduce()把一个函数作用在这个Array的[x1, x2, x3...]上，这个函数必须接收两个参数，reduce()把结果继续和序列的下一个元素做累积计算，其效果就是：
-               [x1, x2, x3, x4].reduce(f) = f(f(f(x1, x2), x3), x4) */
-              return this.foodList.reduce((preTotal, food) => {
-                  return preTotal + food.count
-              }, 0)
-          },
-          totalPrice () {
-            return this.foodList.reduce((preTotal, food) => {
-              return preTotal + food.count * food.price
-            }, 0)
-          },
-          payText () {
-            let minPrice = this.minPrice
-            let totalPrice = this.totalPrice
-            console.log(minPrice, totalPrice);
-            if(totalPrice === 0){
-              return `￥${minPrice}元起送`
-            } else if (totalPrice < minPrice) {
-                return `还差￥${minPrice - totalPrice}元起送`
-            }else {
-                return '去结算'
-            }
-          },
-          listShow () {
-            if(this.totalCount == 0){
-              this.isShow = false
-              return false
-            }
-            if(this.isShow){
-                Vue.nextTick(() => {
-                  if(!this.scroll){ // 保存只创建一次
-                    this.scroll = new BScroll(this.$refs.listContent, {
-                        click: true
-                    })
-                  }else {// 不是第一次
-                      this.scroll.refresh() // 刷新一个滚动(如果高度大于容器元素的高度, 形成滚动条)
-                  }
-                })
-            }
-            return this.isShow
-          }
-        },
-        methods: {
-          toogleList () {
-              this.isShow = !this.isShow
-          },
-          /*
-         让一个隐藏的小球情动一个显示的动画
-           */
-          drop (startEl) {
-            // 找到隐藏的小球
-            const ball  = this.balls.find(ball => !ball.isShow)
-            console.log('找到隐藏的小球',ball);
-            // 显示它
-            if(ball){
-              ball.isShow = true
-              ball.startEl = startEl
-              this.droppingBalls.push(ball)
-            }
-          },
-          /*
-          制定el的起始位置
-           */
-          beforeDrop (el) {
-            console.log('before()', Date.now());
-            //找到对应的ball
-            const ball = this.droppingBalls.shift()
-            console.log(`找到对应的小球${ball}`);
-            var offsetY = 0
-            var offsetX = 0
-            const {left, top} = ball.startEl.getBoundingClientRect()
-            const elLeft = 32
-            const elBottom = 22
-            offsetX = left - elLeft
-            offsetY = -(window.innerHeight - top - elBottom)
-            // 指定transform样式
-            el.style.transform = `translate3d(0, ${offsetY}px, 0)`
-            console.log(`内层动画设置${el.children[0]}`);
-            el.children[0].style.transform = `translate3d(${offsetX}px, 0, 0)`
-
-            // 保存ball
-            el.ball = ball
-            console.log(`再次打印对象el${el}`);
-          },
-
-          /* 指定el的结束位置 */
-          dropping (el) {
-            // 强制重排重绘
-            var temp = el.clientHeight
-            console.log('dropping()', Date.now())
-            // 异步指定
-            this.$nextTick(() => {
-              // 指定transform样式
-              el.style.transform = 'translate3d(0, 0, 0)'
-              el.children[0].style.transform = 'translate3d(0, 0, 0)'
-            })
-          },
-          /*
-           隐藏el
-           */
-          afterDrop (el) {
-            console.log('afterDrop()', Date.now())
-            // 必须延迟更新状态
-            setTimeout(() => {
-              el.ball.isShow = false
-            }, 400)
-          },
-
-          pay() {
-            if(this.totalPrice>=this.minPrice) {
-              alert(`支付${this.totalPrice+this.deliveryPrice}`)
-            }
-          }
-        },
-      components: {
-        cartcontrol
+  export default {
+    props: {
+      foodList: Array,
+      deliveryPrice: Number,
+      minPrice: Number,
+      clearCart: Function,
+      updateFoodCount: Function
+    },
+    data () {
+      return {
+        isShow: false,
+        balls: [
+          {isShow: false},
+          {isShow: false},
+          {isShow: false},
+          {isShow: false},
+          {isShow: false}
+        ],
+        droppingBalls: []  // 保存多个执行动画的ball
       }
+    },
+    computed: {
+      totalCount () {
+        /* Array的reduce()把一个函数作用在这个Array的[x1, x2, x3...]上，这个函数必须接收两个参数，reduce()把结果继续和序列的下一个元素做累积计算，其效果就是：
+         [x1, x2, x3, x4].reduce(f) = f(f(f(x1, x2), x3), x4) */
+        return this.foodList.reduce((preTotal, food) => {
+          return preTotal + food.count
+        }, 0)
+      },
+      totalPrice () {
+        return this.foodList.reduce((preTotal, food) => {
+          return preTotal + food.count * food.price
+        }, 0)
+      },
+      payText () {
+        let minPrice = this.minPrice
+        let totalPrice = this.totalPrice
+        console.log(minPrice, totalPrice);
+        if (totalPrice === 0) {
+          return `￥${minPrice}元起送`
+        } else if (totalPrice < minPrice) {
+          return `还差￥${minPrice - totalPrice}元起送`
+        } else {
+          return '去结算'
+        }
+      },
+      listShow () {
+        if (this.totalCount == 0) {
+          this.isShow = false
+          return false
+        }
+        if (this.isShow) {
+          Vue.nextTick(() => {
+            if (!this.scroll) { // 保存只创建一次
+              this.scroll = new BScroll(this.$refs.listContent, {
+                click: true
+              })
+            } else {// 不是第一次
+              this.scroll.refresh() // 刷新一个滚动(如果高度大于容器元素的高度, 形成滚动条)
+            }
+          })
+        }
+        return this.isShow
+      }
+    },
+    methods: {
+      toogleList () {
+        this.isShow = !this.isShow
+      },
+      /*
+       让一个隐藏的小球情动一个显示的动画
+       */
+      drop (startEl) {
+        // 找到隐藏的小球
+        const ball = this.balls.find(ball => !ball.isShow)
+        console.log('找到隐藏的小球', ball);
+        // 显示它
+        if (ball) {
+          ball.isShow = true
+          ball.startEl = startEl
+          this.droppingBalls.push(ball)
+        }
+      },
+      /*
+       制定el的起始位置
+       */
+      beforeDrop (el) {
+        console.log('before()', Date.now());
+        //找到对应的ball
+        const ball = this.droppingBalls.shift()
+        console.log(`找到对应的小球${ball}`);
+        var offsetY = 0
+        var offsetX = 0
+        const {left, top} = ball.startEl.getBoundingClientRect()
+        const elLeft = 32
+        const elBottom = 22
+        offsetX = left - elLeft
+        offsetY = -(window.innerHeight - top - elBottom)
+        // 指定transform样式
+        el.style.transform = `translate3d(0, ${offsetY}px, 0)`
+        console.log(`内层动画设置${el.children[0]}`);
+        el.children[0].style.transform = `translate3d(${offsetX}px, 0, 0)`
+
+        // 保存ball
+        el.ball = ball
+        console.log(`再次打印对象el${el}`);
+      },
+
+      /* 指定el的结束位置 */
+      dropping (el) {
+        // 强制重排重绘
+        var temp = el.clientHeight
+        console.log('dropping()', Date.now())
+        // 异步指定
+        this.$nextTick(() => {
+          // 指定transform样式
+          el.style.transform = 'translate3d(0, 0, 0)'
+          el.children[0].style.transform = 'translate3d(0, 0, 0)'
+        })
+      },
+      /*
+       隐藏el
+       */
+      afterDrop (el) {
+        console.log('afterDrop()', Date.now())
+        // 必须延迟更新状态
+        setTimeout(() => {
+          el.ball.isShow = false
+        }, 400)
+      },
+
+      pay() {
+        if (this.totalPrice >= this.minPrice) {
+          alert(`支付${this.totalPrice + this.deliveryPrice}`)
+        }
+      }
+    },
+    components: {
+      cartcontrol
     }
+  }
 </script>
 
 <style lang="stylus" rel="stylesheet/stylus">

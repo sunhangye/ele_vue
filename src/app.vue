@@ -51,6 +51,9 @@
             console.log('axios', this.seller)
           }
         })
+        .catch(error => {
+          console.log(error);
+        })
     },
 
     components: {
